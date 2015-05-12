@@ -17,7 +17,6 @@ playlist_url = 'https://www.googleapis.com/youtube/v3/playlistItems?key={api_key
 upload_url   = 'https://www.googleapis.com/youtube/v3/channels?key={api_key}&part=contentDetails&forUsername={username}&maxResults={max_results}'.format(**fdict(api_key=YOUTUBE_API_KEY))
 video_url    = 'https://www.youtube.com/watch?v={}'
 
-
 __doc__ = """
 Usage: umph [-a|-m <num>] [-t <type>] <id>
        umph -h | --help
