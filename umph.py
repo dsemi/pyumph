@@ -2,19 +2,22 @@
 
 import os
 import requests
+import string
 from docopt import docopt
 from queue import Queue
 from threading import Thread
 
-class fdict(dict):
+class FDict(dict):
     def __missing__(self, key):
         return '{%s}' % key
 
 MAX_RESULT_LIMIT = 50
 YOUTUBE_API_KEY = os.environ['YOUTUBE_API_KEY']
 
-playlist_url = 'https://www.googleapis.com/youtube/v3/playlistItems?key={api_key}&part=contentDetails&playlistId={id}&maxResults={max_results}'.format(**fdict(api_key=YOUTUBE_API_KEY))
-upload_url   = 'https://www.googleapis.com/youtube/v3/channels?key={api_key}&part=contentDetails&forUsername={username}&maxResults={max_results}'.format(**fdict(api_key=YOUTUBE_API_KEY))
+formatter = string.Formatter()
+mapping = FDict(api_key=YOUTUBE_API_KEY)
+playlist_url = formatter.vformat('https://www.googleapis.com/youtube/v3/playlistItems?key={api_key}&part=contentDetails&playlistId={id}&maxResults={max_results}', (), mapping)
+upload_url   = formatter.vformat('https://www.googleapis.com/youtube/v3/channels?key={api_key}&part=contentDetails&forUsername={username}&maxResults={max_results}', (), mapping)
 video_url    = 'https://www.youtube.com/watch?v={}'
 
 __doc__ = """
@@ -37,7 +40,7 @@ def print_links(page):
         print(video_url.format(entry['contentDetails']['videoId']))
 
 def run_playlists(playlist_id, max_results, get_all):
-    url = playlist_url.format(**fdict(id=playlist_id, max_results=max_results))
+    url = playlist_url.format(id=playlist_id, max_results= max_results)
     page = download_page(url)
     print_links(page)
     next_page = page.get('nextPageToken')
@@ -49,12 +52,12 @@ def run_playlists(playlist_id, max_results, get_all):
             next_page = page.get('nextPageToken')
 
 def run_username(username, max_results, get_all):
-    url = upload_url.format(**fdict(username=username, max_results=max_results))
+    url = upload_url.format(username=username, max_results=max_results)
     page = download_page(url)
     items = page.get('items')
     assert len(items) == 1
     run_playlists(items[0]['contentDetails']['relatedPlaylists']['uploads'], max_results, get_all)
-    
+
 def main():
     args = docopt(__doc__)
 
